@@ -24,11 +24,11 @@ export class ClassCategoryEventHandlerController {
 
   private handleUserCreatedOrUpdated(payload: UserCreatedEventPayload | UserUpdatedEventPayload) {
     const { proficienciesIds, interestedClassCategoryIds, userId } = payload;
-    if (proficienciesIds) {
-      return this.classCategoryService.addClassCategories(userId, proficienciesIds);
+    if (proficienciesIds?.length) {
+      return this.classCategoryService.updateClassCategories(userId, proficienciesIds);
     }
-    if (interestedClassCategoryIds) {
-      return this.classCategoryService.addClassCategories(userId, interestedClassCategoryIds);
+    if (interestedClassCategoryIds?.length) {
+      return this.classCategoryService.updateClassCategories(userId, interestedClassCategoryIds);
     }
   }
 }

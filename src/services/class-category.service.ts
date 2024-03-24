@@ -21,21 +21,41 @@ export class ClassCategoryService {
     private readonly broadcastService: BroadcastService,
   ) { }
 
-  async addClassCategories(userId: string, classCategoryIds: string[]): Promise<UserPreferences> {
+  async updateClassCategories(userId: string, newClassCategoryIds: string[]): Promise<UserPreferences> {
     let preferences = await this.userPreferencesRepository.findOne({ where: { userId } });
     if (!preferences) {
       // Create new preferences if not found
       preferences = this.userPreferencesRepository.create({
         userId,
-        preferences: { classCategoryIds }
+        preferences: { classCategoryIds: newClassCategoryIds }
       } as UserPreferences);
-      this.dispatchProficiencyCreatedEvent(classCategoryIds, userId);
+      this.dispatchProficiencyCreatedEvent(newClassCategoryIds, userId);
     } else {
-      const classCategoryIdsToInsert = classCategoryIds.filter(id => !preferences.preferences.classCategoryIds.includes(id));
+      const classCategoryIdsToInsert = newClassCategoryIds.filter(id => !preferences.preferences.classCategoryIds.includes(id));
+      const classCategoryIdsToDelete = preferences.preferences.classCategoryIds.filter(id => !newClassCategoryIds.includes(id));
+      preferences.preferences.classCategoryIds = newClassCategoryIds;
       if (classCategoryIdsToInsert.length > 0) {
-        preferences.preferences.classCategoryIds.push(...classCategoryIdsToInsert);
         this.dispatchProficiencyCreatedEvent(classCategoryIdsToInsert, userId);
       }
+      if (classCategoryIdsToDelete.length > 0) {
+        for (const categoryId of classCategoryIdsToDelete)
+          this.dispatchProficiencyDeletedEvent(categoryId, userId);
+      }
+    }
+
+    return this.userPreferencesRepository.save(preferences);
+  }
+
+  async addClassCategories(userId: string, classCategoryIds: string[]): Promise<UserPreferences> {
+    const preferences = await this.userPreferencesRepository.findOne({ where: { userId } });
+    if (!preferences) {
+      throw new NotFoundException("User preferences not found");
+    }
+
+    const classCategoryIdsToInsert = classCategoryIds.filter(id => !preferences.preferences.classCategoryIds.includes(id));
+    if (classCategoryIdsToInsert.length > 0) {
+      preferences.preferences.classCategoryIds.push(...classCategoryIdsToInsert);
+      this.dispatchProficiencyCreatedEvent(classCategoryIdsToInsert, userId);
     }
 
     return this.userPreferencesRepository.save(preferences);
