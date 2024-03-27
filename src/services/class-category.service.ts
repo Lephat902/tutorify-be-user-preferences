@@ -2,11 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
-  BroadcastService,
-  TutorProficiencyCreatedEvent,
-  TutorProficiencyCreatedEventPayload,
-  TutorProficiencyDeletedEvent,
-  TutorProficiencyDeletedEventPayload,
+  BroadcastService, 
+  ClassCategoriesPreferenceCreatedEvent, 
+  ClassCategoriesPreferenceCreatedEventPayload, 
+  ClassCategoriesPreferenceDeletedEvent, 
+  ClassCategoriesPreferenceDeletedEventPayload,
 } from '@tutorify/shared';
 import { Builder } from 'builder-pattern';
 import { UserPreferences } from 'src/entities';
@@ -31,16 +31,16 @@ export class ClassCategoryService {
       } as UserPreferences);
       this.dispatchProficiencyCreatedEvent(newClassCategoryIds, userId);
     } else {
+      // Specify what was inserted and deleted
       const classCategoryIdsToInsert = newClassCategoryIds.filter(id => !preferences.preferences.classCategoryIds.includes(id));
       const classCategoryIdsToDelete = preferences.preferences.classCategoryIds.filter(id => !newClassCategoryIds.includes(id));
+
+      // Assign new preferences
       preferences.preferences.classCategoryIds = newClassCategoryIds;
-      if (classCategoryIdsToInsert.length > 0) {
-        this.dispatchProficiencyCreatedEvent(classCategoryIdsToInsert, userId);
-      }
-      if (classCategoryIdsToDelete.length > 0) {
-        for (const categoryId of classCategoryIdsToDelete)
-          this.dispatchProficiencyDeletedEvent(categoryId, userId);
-      }
+
+      // Then emit events
+      this.dispatchProficiencyCreatedEvent(classCategoryIdsToInsert, userId);
+      this.dispatchProficiencyDeletedEvent(classCategoryIdsToDelete, userId);
     }
 
     return this.userPreferencesRepository.save(preferences);
@@ -76,7 +76,7 @@ export class ClassCategoryService {
     // If found, remove it from the array
     preferences.preferences.classCategoryIds.splice(index, 1);
 
-    this.dispatchProficiencyDeletedEvent(classCategoryId, userId);
+    this.dispatchProficiencyDeletedEvent([classCategoryId], userId);
 
     // Save the updated preferences
     return this.userPreferencesRepository.save(preferences);
@@ -88,22 +88,24 @@ export class ClassCategoryService {
   }
 
   private dispatchProficiencyCreatedEvent(classCategoryIds: string[], userId: string) {
-    for (const classCategoryId of classCategoryIds) {
-      const eventPayload = Builder<TutorProficiencyCreatedEventPayload>()
-        .classCategoryId(classCategoryId)
-        .tutorId(userId)
-        .build();
-      const event = new TutorProficiencyCreatedEvent(eventPayload);
-      this.broadcastService.broadcastEventToAllMicroservices(event.pattern, event.payload);
-    }
+    if (!classCategoryIds?.length)
+      return;
+    const eventPayload = Builder<ClassCategoriesPreferenceCreatedEventPayload>()
+      .userId(userId)
+      .classCategoryIds(classCategoryIds)
+      .build();
+    const event = new ClassCategoriesPreferenceCreatedEvent(eventPayload);
+    this.broadcastService.broadcastEventToAllMicroservices(event.pattern, event.payload);
   }
 
-  private dispatchProficiencyDeletedEvent(classCategoryId: string, userId: string) {
-    const eventPayload = Builder<TutorProficiencyDeletedEventPayload>()
-      .classCategoryId(classCategoryId)
-      .tutorId(userId)
+  private dispatchProficiencyDeletedEvent(classCategoryIds: string[], userId: string) {
+    if (!classCategoryIds?.length)
+      return;
+    const eventPayload = Builder<ClassCategoriesPreferenceDeletedEventPayload>()
+      .userId(userId)
+      .classCategoryIds(classCategoryIds)
       .build();
-    const event = new TutorProficiencyDeletedEvent(eventPayload);
+    const event = new ClassCategoriesPreferenceDeletedEvent(eventPayload);
     this.broadcastService.broadcastEventToAllMicroservices(event.pattern, event.payload);
   }
 }

@@ -14,21 +14,21 @@ export class ClassCategoryEventHandlerController {
 
   @EventPattern(new UserCreatedEventPattern())
   handleUserCreated(payload: UserCreatedEventPayload) {
-    this.handleUserCreatedOrUpdated(payload);
+    return this.handleUserCreatedOrUpdated(payload);
   }
 
   @EventPattern(new UserUpdatedEventPattern())
   handleUserUpdated(payload: UserUpdatedEventPayload) {
-    this.handleUserCreatedOrUpdated(payload);
+    return this.handleUserCreatedOrUpdated(payload);
   }
 
   private handleUserCreatedOrUpdated(payload: UserCreatedEventPayload | UserUpdatedEventPayload) {
     const { proficienciesIds, interestedClassCategoryIds, userId } = payload;
-    if (proficienciesIds?.length) {
-      return this.classCategoryService.updateClassCategories(userId, proficienciesIds);
-    }
-    if (interestedClassCategoryIds?.length) {
-      return this.classCategoryService.updateClassCategories(userId, interestedClassCategoryIds);
+
+    if (proficienciesIds?.length || interestedClassCategoryIds?.length) {
+      console.log("Start update class categories preferences");
+      const categoryIdsToUpdate = proficienciesIds?.length ? proficienciesIds : interestedClassCategoryIds;
+      return this.classCategoryService.updateClassCategories(userId, categoryIdsToUpdate);
     }
   }
 }
