@@ -1,5 +1,5 @@
 import { Entity, Column, BaseEntity, PrimaryColumn } from 'typeorm';
-import { Geometry } from 'geojson';
+import { StoredLocation } from '@tutorify/shared';
 
 @Entity()
 export class UserPreferences extends BaseEntity {
@@ -12,5 +12,5 @@ export class UserPreferences extends BaseEntity {
 
 interface UserPreferencesData {
     classCategoryIds: string[];
-    locations?: Geometry[];
+    location: StoredLocation;
 }

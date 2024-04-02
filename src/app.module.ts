@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ClassCategoryService, GeneralService } from './services';
+import { ClassCategoryService, GeneralService, LocationService } from './services';
 import { Controllers } from './controllers';
 import { BroadcastModule } from '@tutorify/shared';
 import { UserPreferences } from './entities';
@@ -26,6 +26,7 @@ import { UserPreferences } from './entities';
   ],
   providers: [
     ClassCategoryService,
+    LocationService,
     GeneralService,
   ],
   controllers: Controllers,

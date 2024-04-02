@@ -6,11 +6,14 @@ import {
   UserUpdatedEventPattern,
   UserUpdatedEventPayload
 } from '@tutorify/shared';
-import { ClassCategoryService } from 'src/services';
+import { ClassCategoryService, LocationService } from 'src/services';
 
 @Controller()
-export class ClassCategoryEventHandlerController {
-  constructor(private readonly classCategoryService: ClassCategoryService) { }
+export class EventHandlerController {
+  constructor(
+    private readonly classCategoryService: ClassCategoryService,
+    private readonly locationService: LocationService,
+    ) { }
 
   @EventPattern(new UserCreatedEventPattern())
   handleUserCreated(payload: UserCreatedEventPayload) {
@@ -22,13 +25,16 @@ export class ClassCategoryEventHandlerController {
     return this.handleUserCreatedOrUpdated(payload);
   }
 
-  private handleUserCreatedOrUpdated(payload: UserCreatedEventPayload | UserUpdatedEventPayload) {
-    const { proficienciesIds, interestedClassCategoryIds, userId } = payload;
+  private async handleUserCreatedOrUpdated(payload: UserCreatedEventPayload | UserUpdatedEventPayload) {
+    const { proficienciesIds, interestedClassCategoryIds, location, userId } = payload;
 
     if (proficienciesIds?.length || interestedClassCategoryIds?.length) {
-      console.log("Start update class categories preferences");
+      console.log("Start update class categories and location preferences");
       const categoryIdsToUpdate = proficienciesIds?.length ? proficienciesIds : interestedClassCategoryIds;
-      return this.classCategoryService.updateClassCategories(userId, categoryIdsToUpdate);
+      await this.classCategoryService.updateClassCategories(userId, categoryIdsToUpdate);
+    }
+    if (location) {
+      await this.locationService.updateLocation(userId, location);
     }
   }
 }
