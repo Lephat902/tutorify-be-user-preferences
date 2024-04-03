@@ -29,11 +29,12 @@ export class EventHandlerController {
     const { proficienciesIds, interestedClassCategoryIds, location, userId } = payload;
 
     if (proficienciesIds?.length || interestedClassCategoryIds?.length) {
-      console.log("Start update class categories and location preferences");
+      console.log("Start update class categories preferences");
       const categoryIdsToUpdate = proficienciesIds?.length ? proficienciesIds : interestedClassCategoryIds;
       await this.classCategoryService.updateClassCategories(userId, categoryIdsToUpdate);
     }
     if (location) {
+      console.log("Start update location preferences", location);
       await this.locationService.updateLocation(userId, location);
     }
   }
