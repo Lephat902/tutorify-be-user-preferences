@@ -3,6 +3,7 @@ import { EventPattern } from '@nestjs/microservices';
 import {
   UserCreatedEventPattern,
   UserCreatedEventPayload,
+  UserRole,
   UserUpdatedEventPattern,
   UserUpdatedEventPayload
 } from '@tutorify/shared';
@@ -28,9 +29,9 @@ export class EventHandlerController {
   private async handleUserCreatedOrUpdated(payload: UserCreatedEventPayload | UserUpdatedEventPayload) {
     const { proficienciesIds, interestedClassCategoryIds, location, userId } = payload;
 
-    if (proficienciesIds?.length || interestedClassCategoryIds?.length) {
+    if (Array.isArray(proficienciesIds) || Array.isArray(interestedClassCategoryIds)) {
       console.log("Start update class categories preferences");
-      const categoryIdsToUpdate = proficienciesIds?.length ? proficienciesIds : interestedClassCategoryIds;
+      const categoryIdsToUpdate = Array.isArray(proficienciesIds) ? proficienciesIds : interestedClassCategoryIds;
       await this.classCategoryService.updateClassCategories(userId, categoryIdsToUpdate);
     }
     if (location) {
