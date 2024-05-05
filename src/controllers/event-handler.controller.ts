@@ -29,12 +29,17 @@ export class EventHandlerController {
   private async handleUserCreatedOrUpdated(payload: UserCreatedEventPayload | UserUpdatedEventPayload) {
     const { proficienciesIds, interestedClassCategoryIds, location, userId } = payload;
 
-    if (proficienciesIds.length || interestedClassCategoryIds.length) {
+    // note that the incoming ids can be in either of the 2 forms:
+    // + array: process it
+    //    + empty: mean to reset
+    //    + not empty: normal alternation
+    // + not an array: ignore it
+    if (Array.isArray(proficienciesIds) || Array.isArray(interestedClassCategoryIds)) {
       console.log("Start update class categories preferences");
-      const categoryIdsToUpdate = proficienciesIds.length ? proficienciesIds : interestedClassCategoryIds;
+      const categoryIdsToUpdate = Array.isArray(proficienciesIds) ? proficienciesIds : interestedClassCategoryIds;
       await this.classCategoryService.updateClassCategories(userId, categoryIdsToUpdate);
     }
-    if (location) {
+    if (location !== undefined) {
       console.log("Start update location preferences", location);
       await this.locationService.updateLocation(userId, location);
     }
