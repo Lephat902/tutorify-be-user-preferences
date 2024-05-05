@@ -29,9 +29,9 @@ export class EventHandlerController {
   private async handleUserCreatedOrUpdated(payload: UserCreatedEventPayload | UserUpdatedEventPayload) {
     const { proficienciesIds, interestedClassCategoryIds, location, userId } = payload;
 
-    if (Array.isArray(proficienciesIds) || Array.isArray(interestedClassCategoryIds)) {
+    if (proficienciesIds.length || interestedClassCategoryIds.length) {
       console.log("Start update class categories preferences");
-      const categoryIdsToUpdate = Array.isArray(proficienciesIds) ? proficienciesIds : interestedClassCategoryIds;
+      const categoryIdsToUpdate = proficienciesIds.length ? proficienciesIds : interestedClassCategoryIds;
       await this.classCategoryService.updateClassCategories(userId, categoryIdsToUpdate);
     }
     if (location) {
