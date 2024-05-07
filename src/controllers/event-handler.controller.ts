@@ -3,18 +3,20 @@ import { EventPattern } from '@nestjs/microservices';
 import {
   UserCreatedEventPattern,
   UserCreatedEventPayload,
-  UserRole,
+  UserDeletedEventPattern,
+  UserDeletedEventPayload,
   UserUpdatedEventPattern,
   UserUpdatedEventPayload
 } from '@tutorify/shared';
-import { ClassCategoryService, LocationService } from 'src/services';
+import { ClassCategoryService, GeneralService, LocationService } from 'src/services';
 
 @Controller()
 export class EventHandlerController {
   constructor(
     private readonly classCategoryService: ClassCategoryService,
     private readonly locationService: LocationService,
-    ) { }
+    private readonly generalService: GeneralService,
+  ) { }
 
   @EventPattern(new UserCreatedEventPattern())
   handleUserCreated(payload: UserCreatedEventPayload) {
@@ -24,6 +26,11 @@ export class EventHandlerController {
   @EventPattern(new UserUpdatedEventPattern())
   handleUserUpdated(payload: UserUpdatedEventPayload) {
     return this.handleUserCreatedOrUpdated(payload);
+  }
+
+  @EventPattern(new UserDeletedEventPattern())
+  handleUserDeleted(payload: UserDeletedEventPayload) {
+    return this.generalService.handleUserDeleted(payload.userId);
   }
 
   private async handleUserCreatedOrUpdated(payload: UserCreatedEventPayload | UserUpdatedEventPayload) {
